@@ -106,7 +106,10 @@ uint32_t
 as_vector_wire_encode_response_size(uint32_t result_count,
 		uint32_t key_status_count)
 {
-	return 12 + result_count * 16 + key_status_count * 12;
+	// EC528: per result = int64 head + int32 vid + uint8 version + uint8 pad
+	// + float32 distance = 18 bytes; per status = int64 head + uint8 status
+	// + uint8 reserved[3] = 12 bytes; header = 12 bytes.
+	return 12 + result_count * 18 + key_status_count * 12;
 }
 
 int

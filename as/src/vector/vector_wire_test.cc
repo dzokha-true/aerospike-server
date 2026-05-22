@@ -75,8 +75,30 @@ TEST(VectorWire, ResponseEncode) // SPEC-3-WIRE-001
 	as_vector_wire_key_status statuses[] = { { 2, AS_VECTOR_KEY_WRONG_OWNER } };
 	uint8_t buf[64];
 
-	ASSERT_EQ(40, as_vector_wire_encode_response(buf, sizeof(buf),
+	ASSERT_EQ(42, as_vector_wire_encode_response(buf, sizeof(buf),
 			AS_VECTOR_REQ_OK, results, 1, statuses, 1));
 	EXPECT_EQ(AS_VECTOR_WIRE_VERSION, buf[0]);
 	EXPECT_EQ(AS_VECTOR_REQ_OK, buf[1]);
+}
+
+TEST(VectorWire, EncodeReturnIsActualLength) // SPEC-3-WIRE-001
+{
+	const uint32_t cap_results = 8;
+	const uint32_t cap_statuses = 8;
+	const uint32_t actual_results = 1;
+	const uint32_t actual_statuses = 0;
+	uint32_t cap = as_vector_wire_encode_response_size(cap_results,
+			cap_statuses);
+	uint32_t expected = as_vector_wire_encode_response_size(actual_results,
+			actual_statuses);
+
+	std::vector<uint8_t> buf(cap, 0xCD);
+	as_vector_scored_tail r = { 42, 7, 1, 0.125f };
+
+	int got = as_vector_wire_encode_response(buf.data(), cap, AS_VECTOR_REQ_OK,
+			&r, actual_results, nullptr, actual_statuses);
+
+	ASSERT_EQ((int)expected, got);
+	ASSERT_LT(expected, cap);
+	EXPECT_EQ(0xCD, buf[expected]);
 }

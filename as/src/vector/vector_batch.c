@@ -305,15 +305,19 @@ as_vector_batch_handle(as_transaction* btr)
 
 	uint32_t result_count = as_vector_topk_fill(&acc, scored, req.topk);
 
-	if (as_vector_wire_encode_response(resp_buf, resp_sz, AS_VECTOR_REQ_OK,
-				scored, result_count, statuses, status_count) < 0) {
+	int encoded = as_vector_wire_encode_response(resp_buf, resp_sz,
+			AS_VECTOR_REQ_OK, scored, result_count, statuses, status_count);
+
+	if (encoded < 0) {
 		cf_free(scored);
 		cf_free(statuses);
 		cf_free(resp_buf);
 		return send_vector_error(btr, AS_ERR_UNKNOWN);
 	}
 
-	int rv = send_vector_msg(btr, AS_OK, resp_buf, resp_sz);
+	// EC528: send only the bytes the encoder wrote; resp_sz is the max-cap
+	// allocation, so sending it would leak uninitialized heap.
+	int rv = send_vector_msg(btr, AS_OK, resp_buf, (uint32_t)encoded);
 
 	cf_free(scored);
 	cf_free(statuses);
