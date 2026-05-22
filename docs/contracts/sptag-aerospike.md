@@ -73,10 +73,22 @@ Query vector length must equal `dimension * value_type_size`, and must be `<= ve
 
 Mirror SPTAG `ComputeDistance` / posting-scan path:
 
-- `l2`: sum of squared differences (float accumulator).
-- `cosine` and `inner-product`: `base * base - dot` where `base` is `1` for `float`, else `numeric_max(T)` per SPTAG `Utils::GetBase`.
+- `l2`: sum of squared differences (float accumulator). Always `>= 0`.
+- `cosine` and `inner-product`: `base * base - dot` where `base` is `1` for `float`, else `numeric_max(T)` per SPTAG `Utils::GetBase`. **May be negative** for strongly-aligned non-unit vectors; smaller-is-better, so a negative score is a *valid, very-similar* result, not an error.
 - No server normalization. SPTAG must send query bytes already compatible with postings.
 - No quantizer/PQ/OPQ unless a future contract adds metadata.
+
+## Record digest
+
+The server resolves each `head_id_key` to an Aerospike record digest using the canonical client derivation. SPTAG side must produce the same digest via `as_key_init_int64` (or the equivalent in the chosen client) so records are reachable.
+
+```text
+digest = RIPEMD-160( set_name_bytes
+                  || 0x01            // AS_PARTICLE_TYPE_INTEGER
+                  || big-endian int64(head_id_key) )
+```
+
+The namespace is **not** part of the digest; it scopes the partition tree.
 
 ## VECTOR_DISTANCE wire path
 

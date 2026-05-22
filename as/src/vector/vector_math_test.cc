@@ -82,6 +82,21 @@ TEST(VectorMath, Int16Cosine) // SPEC-3-VDIST-001
 			expected);
 }
 
+TEST(VectorMath, NegativeCosineIsValid) // SPEC-3-VDIST-001
+{
+	// Strongly-aligned non-unit vectors -> dot > 1 -> SPTAG cosine returns
+	// a negative score, which means very similar (smaller-is-better). The
+	// wrapper must not treat that as a compute failure.
+	const float q[] = { 5.0f, 5.0f };
+	const float t[] = { 5.0f, 5.0f };
+	float got = 0.0f;
+
+	ASSERT_EQ(0, as_vector_distance_compute(AS_VECTOR_VALUE_TYPE_FLOAT,
+			AS_VECTOR_METRIC_COSINE, 2, q, t, &got));
+	EXPECT_LT(got, 0.0f);
+	EXPECT_FLOAT_EQ(1.0f - 50.0f, got);
+}
+
 TEST(VectorMath, BadDimension) // SPEC-3-VDIST-001
 {
 	const float q[] = { 1.0f };

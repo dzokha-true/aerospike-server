@@ -9,6 +9,7 @@ tests:
   - as/src/vector/vector_topk_test.cc
   - as/src/vector/vector_wire_test.cc
   - as/src/vector/vector_cfg_test.cc
+  - tests/conformance/vector_distance/test_codec.py
 ---
 
 # Phase 3 Vector Distance
