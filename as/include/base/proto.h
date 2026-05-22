@@ -324,6 +324,8 @@ typedef struct as_msg_field_s {
 #define AS_MSG_FIELD_TYPE_BATCH             41
 #define AS_MSG_FIELD_TYPE_BATCH_WITH_SET    42
 #define AS_MSG_FIELD_TYPE_PREDEXP           43
+#define AS_MSG_FIELD_TYPE_VECTOR_DISTANCE          44 // EC528: SPTAG tail distance request
+#define AS_MSG_FIELD_TYPE_VECTOR_DISTANCE_RESPONSE 45 // EC528: SPTAG tail distance response
 
 // Bits in as_transaction.msg_fields indicate which fields are present.
 #define AS_MSG_FIELD_BIT_NAMESPACE          (1 << 0)

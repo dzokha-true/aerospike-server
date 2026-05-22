@@ -147,6 +147,24 @@ GEOSPATIAL_HEADERS += geospatial.h
 GEOSPATIAL_SOURCES += geojson.cc
 GEOSPATIAL_SOURCES += geospatial.cc
 
+VECTOR_HEADERS += vector_batch.h
+VECTOR_HEADERS += vector_digest.h
+VECTOR_HEADERS += vector_distance.h
+VECTOR_HEADERS += vector_posting.h
+VECTOR_HEADERS += vector_topk.h
+VECTOR_HEADERS += vector_types.h
+VECTOR_HEADERS += vector_wire.h
+VECTOR_HEADERS += sptag_distance.h
+
+VECTOR_SOURCES += vector_batch.c
+VECTOR_SOURCES += vector_digest.c
+VECTOR_SOURCES += vector_distance.cc
+VECTOR_SOURCES += vector_posting.c
+VECTOR_SOURCES += vector_topk.c
+VECTOR_SOURCES += vector_types.c
+VECTOR_SOURCES += vector_namespace_server.c
+VECTOR_SOURCES += vector_wire.c
+
 QUERY_HEADERS += query.h
 QUERY_HEADERS += query_job.h
 QUERY_HEADERS += query_manager.h
@@ -233,6 +251,7 @@ endif
 HEADERS = $(BASE_HEADERS:%=base/%)
 HEADERS += $(FABRIC_HEADERS:%=fabric/%)
 HEADERS += $(GEOSPATIAL_HEADERS:%=geospatial/%)
+HEADERS += $(VECTOR_HEADERS:%=vector/%)
 HEADERS += $(QUERY_HEADERS:%=query/%)
 HEADERS += $(SINDEX_HEADERS:%=sindex/%)
 HEADERS += $(STORAGE_HEADERS:%=storage/%)
@@ -242,6 +261,7 @@ HEADERS += $(XDR_HEADERS:%=xdr/%)
 SOURCES = $(BASE_SOURCES:%=base/%)
 SOURCES += $(FABRIC_SOURCES:%=fabric/%)
 SOURCES += $(GEOSPATIAL_SOURCES:%=geospatial/%)
+SOURCES += $(VECTOR_SOURCES:%=vector/%)
 SOURCES += $(QUERY_SOURCES:%=query/%)
 SOURCES += $(SINDEX_SOURCES:%=sindex/%)
 SOURCES += $(STORAGE_SOURCES:%=storage/%)
@@ -331,6 +351,49 @@ endif
 
 $(OBJECT_DIR)/geospatial/%.o: CXXFLAGS += $(S2_WNO) -std=c++17 -D__STDC_LIMIT_MACROS
 $(OBJECT_DIR)/geospatial/%.o: CFLAGS := $(filter-out -std=gnu99,$(CFLAGS))
+
+$(OBJECT_DIR)/vector/%.o: CXXFLAGS += -std=c++17 -D__STDC_LIMIT_MACROS
+$(OBJECT_DIR)/vector/vector_distance.o: CXXFLAGS += -std=c++17 -D__STDC_LIMIT_MACROS
+
+# EC528: vector unit tests (gtest)
+VECTOR_LIB_SOURCES = vector/vector_types.c vector/vector_posting.c \
+		vector/vector_topk.c vector/vector_wire.c
+VECTOR_LIB_CC = vector/vector_distance.cc
+VECTOR_TEST_SOURCES = vector/vector_math_test.cc vector/vector_posting_test.cc \
+		vector/vector_topk_test.cc vector/vector_wire_test.cc \
+		vector/vector_cfg_test.cc
+VECTOR_UNIT_TESTS = $(BIN_DIR)/vector_unit_tests
+VECTOR_TEST_INCLUDES = -I"$(DEPTH)/as/include"
+GTEST_PREFIX ?= $(shell brew --prefix googletest 2>/dev/null)
+ifneq ($(GTEST_PREFIX),)
+  VECTOR_TEST_INCLUDES += -I$(GTEST_PREFIX)/include
+  VECTOR_TEST_LIBS = -L$(GTEST_PREFIX)/lib -lgtest -lgtest_main -pthread
+else
+  VECTOR_TEST_LIBS = -lgtest -lgtest_main -pthread
+endif
+VECTOR_TEST_CXXFLAGS = -std=c++17 -Wall -Wextra $(VECTOR_TEST_INCLUDES)
+VECTOR_TEST_OBJ_DIR = $(OBJECT_DIR)/vector/tests
+VECTOR_TEST_OBJS = $(VECTOR_TEST_SOURCES:vector/%.cc=$(VECTOR_TEST_OBJ_DIR)/%.o) \
+		$(VECTOR_LIB_SOURCES:vector/%.c=$(VECTOR_TEST_OBJ_DIR)/%.o) \
+		$(VECTOR_LIB_CC:vector/%.cc=$(VECTOR_TEST_OBJ_DIR)/%.o)
+
+.PHONY: vector-tests run-vector-tests
+vector-tests: $(VECTOR_UNIT_TESTS)
+
+run-vector-tests: vector-tests
+	$(VECTOR_UNIT_TESTS)
+
+$(VECTOR_TEST_OBJ_DIR)/%.o: vector/%.cc
+	@mkdir -p $(dir $@)
+	$(CXX) $(VECTOR_TEST_CXXFLAGS) -c -o $@ $<
+
+$(VECTOR_TEST_OBJ_DIR)/%.o: vector/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(VECTOR_TEST_INCLUDES) -c -o $@ $<
+
+$(VECTOR_UNIT_TESTS): $(VECTOR_TEST_OBJS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(VECTOR_TEST_CXXFLAGS) -o $@ $(VECTOR_TEST_OBJS) $(VECTOR_TEST_LIBS)
 
 $(OBJECT_DIR)/base/cfg_tree_wrapper.o: CXXFLAGS += $(S2_WNO) -std=c++17 -D__STDC_LIMIT_MACROS
 $(OBJECT_DIR)/base/cfg_tree_wrapper.o: CFLAGS := $(filter-out -std=gnu99,$(CFLAGS))
