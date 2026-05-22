@@ -25,6 +25,7 @@ typedef struct as_vector_posting_iter_s {
 	uint32_t blob_size;
 	uint32_t stride;
 	uint32_t offset;
+	bool malformed; // EC528: set if next() rejected a malformed element
 } as_vector_posting_iter;
 
 bool

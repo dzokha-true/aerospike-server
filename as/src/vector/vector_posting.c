@@ -42,6 +42,7 @@ as_vector_posting_iter_init(as_vector_posting_iter* it, const uint8_t* blob,
 	it->blob_size = blob_size;
 	it->stride = stride;
 	it->offset = 0;
+	it->malformed = false;
 	return true;
 }
 
@@ -57,6 +58,9 @@ as_vector_posting_iter_next(as_vector_posting_iter* it,
 	int32_t vid = (int32_t)as_vector_read_le32(p);
 
 	if (vid < 0) {
+		// EC528: distinguish from clean EOF so the caller can mark the
+		// whole posting malformed instead of treating it as ok.
+		it->malformed = true;
 		return false;
 	}
 

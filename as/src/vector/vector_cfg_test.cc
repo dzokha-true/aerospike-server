@@ -46,3 +46,21 @@ TEST(VectorCfg, QueryBytesLimit) // SPEC-3-CFG-001
 
 	EXPECT_FALSE(as_vector_namespace_cfg_valid(&ns));
 }
+
+TEST(VectorCfg, RejectsDimensionOverflow) // SPEC-3-CFG-001
+{
+	// EC528: dim * sizeof(value_type) must fit uint32; values past the cap
+	// are rejected even if cfg.c bounds slipped.
+	as_vector_namespace_cfg ns = { AS_VECTOR_MAX_DIMENSION + 1,
+		AS_VECTOR_VALUE_TYPE_FLOAT, AS_VECTOR_METRIC_L2, 0 };
+
+	EXPECT_FALSE(as_vector_namespace_cfg_valid(&ns));
+}
+
+TEST(VectorCfg, AcceptsMaxDimension) // SPEC-3-CFG-001
+{
+	as_vector_namespace_cfg ns = { AS_VECTOR_MAX_DIMENSION,
+		AS_VECTOR_VALUE_TYPE_FLOAT, AS_VECTOR_METRIC_L2, 0 };
+
+	EXPECT_TRUE(as_vector_namespace_cfg_valid(&ns));
+}

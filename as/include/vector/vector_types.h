@@ -17,6 +17,10 @@ extern "C" {
 
 #define AS_VECTOR_HEAD_ID_MAX INT32_MAX
 
+// EC528: bound dimension so dimension * sizeof(value_type) fits uint32 with
+// room to spare; far above any realistic SPTAG ANN dimension.
+#define AS_VECTOR_MAX_DIMENSION (1u << 16)
+
 typedef enum {
 	AS_VECTOR_VALUE_TYPE_FLOAT = 0,
 	AS_VECTOR_VALUE_TYPE_UINT8 = 1,

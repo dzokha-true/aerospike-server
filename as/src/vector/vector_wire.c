@@ -21,7 +21,8 @@ as_vector_wire_decode_request(const uint8_t* data, uint32_t size,
 		char* set_buf, uint32_t set_buf_cap, uint8_t* query_buf,
 		uint32_t query_buf_cap, int64_t* head_buf, uint32_t head_buf_cap)
 {
-	if (size < 16) {
+	// EC528: header is 18 bytes (head_count is uint32 at offset 14).
+	if (size < 18) {
 		return -1;
 	}
 

@@ -54,6 +54,23 @@ TEST(VectorWire, RequestRoundTrip) // SPEC-3-WIRE-001
 	EXPECT_EQ(42, req.head_id_keys[0]);
 }
 
+TEST(VectorWire, RejectShortHeader) // SPEC-3-WIRE-001
+{
+	uint8_t req_buf[17] = { AS_VECTOR_WIRE_VERSION };
+	char bin[8];
+	char set[8];
+	uint8_t query[8];
+	int64_t heads[1];
+	as_vector_wire_request req;
+
+	// Anything below the 18-byte header must fail before reading head_count.
+	for (uint32_t sz = 0; sz <= 17; sz++) {
+		EXPECT_NE(0, as_vector_wire_decode_request(req_buf, sz, &req, bin,
+				sizeof(bin), set, sizeof(set), query, sizeof(query), heads,
+				1)) << "size=" << sz;
+	}
+}
+
 TEST(VectorWire, RejectEmptyHeadList) // SPEC-3-WIRE-001
 {
 	uint8_t req_buf[32] = { AS_VECTOR_WIRE_VERSION, 0, 0, 0, 1, 0, 0, 0,

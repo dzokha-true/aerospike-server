@@ -3314,7 +3314,8 @@ as_config_init(const char* config_file)
 				ns->n_truncate_threads = cfg_u32(&line, 1, MAX_TRUNCATE_THREADS);
 				break;
 			case CASE_NAMESPACE_VECTOR_DIMENSION:
-				ns->vector_dimension = cfg_u32(&line, 1, UINT32_MAX);
+				ns->vector_dimension = cfg_u32(&line, 1,
+						AS_VECTOR_MAX_DIMENSION);
 				break;
 			case CASE_NAMESPACE_VECTOR_VALUE_TYPE: {
 				as_vector_value_type vt;

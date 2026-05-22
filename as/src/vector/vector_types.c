@@ -66,7 +66,8 @@ as_vector_metric_from_string(const char* s, as_vector_metric* out)
 bool
 as_vector_namespace_cfg_valid(const as_vector_namespace_cfg* ns)
 {
-	if (ns->vector_dimension == 0) {
+	if (ns->vector_dimension == 0 ||
+			ns->vector_dimension > AS_VECTOR_MAX_DIMENSION) {
 		return false;
 	}
 	if ((as_vector_value_type)ns->vector_value_type == AS_VECTOR_VALUE_TYPE_BAD) {

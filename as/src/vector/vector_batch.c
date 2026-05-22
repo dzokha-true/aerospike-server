@@ -292,6 +292,12 @@ as_vector_batch_handle(as_transaction* btr)
 			}
 		}
 
+		// EC528: iter sets malformed when next() rejects negative VID, so the
+		// loop ending alone does not imply success.
+		if (pit.malformed) {
+			malformed = true;
+		}
+
 		as_storage_record_close(&rd);
 		as_record_done(&r_ref, ns);
 		as_partition_release(&rsv);

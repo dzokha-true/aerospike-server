@@ -82,4 +82,26 @@ TEST(VectorPosting, NegativeVid) // SPEC-3-PARSER-001
 
 	as_vector_posting_element e;
 	EXPECT_FALSE(as_vector_posting_iter_next(&it, &e));
+	// EC528: must be reported as malformed, not clean EOF.
+	EXPECT_TRUE(it.malformed);
+}
+
+TEST(VectorPosting, CleanEofIsNotMalformed) // SPEC-3-PARSER-001
+{
+	std::vector<uint8_t> blob;
+
+	append_le32(blob, 5);
+	blob.push_back(0);
+	const float p[] = { 1.0f, 2.0f };
+	const uint8_t* pb = reinterpret_cast<const uint8_t*>(p);
+	blob.insert(blob.end(), pb, pb + sizeof(p));
+
+	as_vector_posting_iter it;
+	ASSERT_TRUE(as_vector_posting_iter_init(&it, blob.data(),
+			(uint32_t)blob.size(), 2, AS_VECTOR_VALUE_TYPE_FLOAT));
+
+	as_vector_posting_element e;
+	EXPECT_TRUE(as_vector_posting_iter_next(&it, &e));
+	EXPECT_FALSE(as_vector_posting_iter_next(&it, &e));
+	EXPECT_FALSE(it.malformed);
 }
