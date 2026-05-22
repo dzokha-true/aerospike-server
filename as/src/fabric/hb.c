@@ -3143,8 +3143,9 @@ config_mcsize()
 		mode_cluster_size = multicast_supported_cluster_size_get();
 	}
 
-	// Ensure we are always upper bounded by the absolute max cluster size.
-	int supported_cluster_size = MIN(ASC, mode_cluster_size);
+	// EC528: mesh clusters may exceed multicast adjacency cap, but never
+	// exceed the compile-time cluster array bound.
+	int supported_cluster_size = MIN(AS_CLUSTER_SZ, mode_cluster_size);
 
 	if (g_hb_cluster_nodes_limit != 0 &&
 			supported_cluster_size > (int)g_hb_cluster_nodes_limit) {
