@@ -25,3 +25,6 @@ cbl.txt
 
 # vscode settings
 .vscode/
+
+# EC528: python conformance harness
+tests/conformance/**/__pycache__/
