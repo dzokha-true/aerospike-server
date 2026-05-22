@@ -28,7 +28,6 @@
 #include "vector/vector_types.h"
 #include "vector/vector_wire.h"
 
-#define VECTOR_STACK_BINS 64
 
 static int
 send_vector_msg(as_transaction* btr, uint8_t result_code, const uint8_t* payload,
@@ -123,6 +122,15 @@ as_vector_batch_handle(as_transaction* btr)
 	uint32_t payload_sz = vf->field_sz > 0 ? vf->field_sz - 1 : 0;
 	const uint8_t* payload = vf->data;
 
+	// EC528: distinguish unsupported wire version from generic bad-request.
+	// The decoder returns -1 for both; check the version byte first so the
+	// client sees the contract-defined status and can negotiate.
+	if (payload_sz < 1 || payload[0] != AS_VECTOR_WIRE_VERSION) {
+		uint8_t pay[12] = { AS_VECTOR_WIRE_VERSION,
+				AS_VECTOR_REQ_UNSUPPORTED_VERSION };
+		return send_vector_msg(btr, AS_OK, pay, sizeof(pay));
+	}
+
 	char bin_buf[256];
 	char set_buf[256];
 	uint8_t query_buf[1024 * 1024];
@@ -188,7 +196,10 @@ as_vector_batch_handle(as_transaction* btr)
 	as_vector_topk_init(&acc, scored, req.topk, req.topk);
 
 	uint32_t status_count = 0;
-	as_bin stack_bins[VECTOR_STACK_BINS];
+	// EC528: as_storage_rd_load_bins() unpacks up to rd->flat_n_bins (capped
+	// only by RECORD_MAX_BINS) into the caller buffer; match the upstream
+	// read path so a many-bin record cannot overflow the stack.
+	as_bin stack_bins[RECORD_MAX_BINS];
 
 	for (uint32_t hi = 0; hi < req.head_id_count; hi++) {
 		int64_t head_id = req.head_id_keys[hi];

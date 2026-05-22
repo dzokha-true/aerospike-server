@@ -54,6 +54,27 @@ TEST(VectorWire, RequestRoundTrip) // SPEC-3-WIRE-001
 	EXPECT_EQ(42, req.head_id_keys[0]);
 }
 
+TEST(VectorWire, RejectsUnsupportedVersion) // SPEC-3-WIRE-001
+{
+	// Valid 18-byte header except for an unsupported version byte. Decoder
+	// must reject; the batch handler peeks the version before calling and
+	// reports unsupported-version separately to the client.
+	uint8_t req_buf[32] = { 0 };
+
+	req_buf[0] = AS_VECTOR_WIRE_VERSION + 1;
+	req_buf[4] = 1; // topk
+	req_buf[14] = 1; // head_count
+
+	char bin[8];
+	char set[8];
+	uint8_t query[8];
+	int64_t heads[1];
+	as_vector_wire_request req;
+
+	EXPECT_NE(0, as_vector_wire_decode_request(req_buf, sizeof(req_buf), &req,
+			bin, sizeof(bin), set, sizeof(set), query, sizeof(query), heads, 1));
+}
+
 TEST(VectorWire, RejectShortHeader) // SPEC-3-WIRE-001
 {
 	uint8_t req_buf[17] = { AS_VECTOR_WIRE_VERSION };
