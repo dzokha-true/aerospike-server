@@ -120,6 +120,18 @@ jobs:
           set -euo pipefail
           make EEREPO="$GITHUB_WORKSPACE/aerospike-server-enterprise" run-tests
 
+      - name: Run EC528 vector unit tests
+        working-directory: aerospike-server
+        run: |
+          set -euo pipefail
+          make -C as run-vector-tests
+
+      - name: Run Phase 2 cluster integration checks
+        working-directory: aerospike-server
+        run: |
+          set -euo pipefail
+          tests/integration/cluster_mesh_9nodes.sh
+
       - name: Install Aerospike
         run: |
           set -euo pipefail
