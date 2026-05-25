@@ -16,7 +16,7 @@ Keep a hybrid split:
 
 - SPTAG owns Head Graph search and global merge.
 - Aerospike owns posting-list records keyed by Head ID.
-- Future Aerospike work may compute Tail Vector distances only for listed Head ID records on the owner node.
+- Aerospike computes Tail Vector distances for explicitly listed Head ID records on the owner node (`VECTOR_DISTANCE`, Phase 3).
 
 Aerospike will not store or traverse the ANN graph.
 

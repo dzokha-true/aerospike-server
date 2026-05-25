@@ -30,24 +30,27 @@ Use this as background for any phase. Phase-specific files repeat a short versio
 ### Aerospike (storage backend — this repo)
 
 - **Owns:** posting-list blobs keyed by **head ID** (`AEROSPIKEIO` mode)
-- **New capability we add:** native C++ distance on tail vectors inside posting bins, per partition
+- **Phase 3 (shipped):** `VECTOR_DISTANCE` — SPTAG-compatible tail distance on listed Head IDs, owner-local top-K per request
 - **Does not own:** `graph.bin`, RNG edges, BK-tree, graph traversal
-- **CE today:** `AS_PARTICLE_TYPE_VECTOR` is a blob alias — no distance math, no ANN
+- **CE note:** `AS_PARTICLE_TYPE_VECTOR` still uses the blob vtable; distance is a separate EC528 batch path, not a particle-type feature
 
 ---
 
 ## Query paths
 
-### Baseline (today)
+### Baseline (SPTAG-only distance)
 
 1. SPTAG: graph search on `m_pGraph` → head candidate IDs
 2. SPTAG → Aerospike: MultiGet posting bins by head ID
 3. SPTAG: `ComputeDistance` on tail bytes in postings
 4. SPTAG: merge top-K
 
-### Target (after Phase 3–4)
+### Target (Phase 3 server + Phase 4 client)
 
-Steps 1–2 unchanged. Step 3 becomes: Aerospike `VECTOR_DISTANCE` on owning nodes; SPTAG merges results.
+1. SPTAG: graph search (unchanged)
+2. SPTAG: parallel `VECTOR_DISTANCE` per owning node (`AS_MSG_INFO1_BATCH` + field **44**)
+3. Aerospike: Owner-Local Top K + per-key statuses (field **45**)
+4. SPTAG: global top-K merge (unchanged)
 
 ---
 
@@ -61,7 +64,8 @@ Steps 1–2 unchanged. Step 3 becomes: Aerospike `VECTOR_DISTANCE` on owning nod
 | **Posting list**    | Bin blob: packed tail vectors + metadata for one head        |
 | **Tail vector**     | One embedding inside a posting; distance target              |
 | **AEROSPIKEIO**     | SPTAG storage mode: postings in Aerospike, graph on disk/RAM |
-| **ComputeDistance** | SPTAG client function on posting bytes (to offload)          |
+| **ComputeDistance** | SPTAG reference distance on posting bytes (baseline / A-B) |
+| **VECTOR_DISTANCE** | EC528 batch field 44/45; see `docs/contracts/sptag-aerospike.md` |
 
 
 ---
@@ -71,16 +75,18 @@ Steps 1–2 unchanged. Step 3 becomes: Aerospike `VECTOR_DISTANCE` on owning nod
 
 | Path                      | Role                                           |
 | ------------------------- | ---------------------------------------------- |
-| `as/include/fabric/hb.h`  | `AS_CLUSTER_SZ` (default 8) — cluster node cap |
-| `as/include/base/proto.h` | Wire op codes (`AS_MSG_OP_`*)                  |
+| `as/include/fabric/hb.h`  | `AS_CLUSTER_SZ` (default **32**, EC528)        |
+| `as/include/base/proto.h` | `AS_MSG_OP_*` and EC528 field types 44/45      |
+| `as/src/base/batch.c`     | `VECTOR_DISTANCE` dispatch to vector handler   |
+| `as/src/vector/`          | Posting parser, distance, wire codec, top-K      |
 | `as/src/base/particle.c`  | Particle types; VECTOR uses blob vtable        |
-| `as/src/base/cfg.c`       | Namespace config parsing                       |
+| `as/src/base/cfg.c`       | Namespace vector config parsing                |
 | `as/src/geospatial/`      | Precedent for C++ feature module in server     |
-| `as/src/query/query.c`    | Background query / aggregation                 |
-| `as/src/transaction/`     | Read/write transaction path                    |
+| `as/src/transaction/`     | Read/write transaction path (not vector entry) |
+| `docs/architecture/module-map.md` | Request-flow diagram for agents        |
 
 
-Build: see root `README.md`, `./bin/install-dependencies.sh`.
+Build: see root `README.md`, `./bin/install-dependencies.sh`. Vector unit tests: `make -C as run-vector-tests`.
 
 ---
 

@@ -103,7 +103,7 @@ tests: []
 | Contract section | Minimum tests |
 |------------------|---------------|
 | Posting byte layout | Parser unit tests with hex fixtures from SPTAG |
-| `VECTOR_DISTANCE` wire format | Encode/decode unit test + one live op conformance |
+| `VECTOR_DISTANCE` wire format | `vector_wire_test.cc` + `tests/conformance/vector_distance/test_codec.py`; live asd smoke planned Phase 4 |
 | `AS_CLUSTER_SZ` | Integration spec: N nodes join mesh cluster |
 
 When contract changes, **update spec + tests in same PR**.

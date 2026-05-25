@@ -38,7 +38,7 @@ Return `Owner-Local Top K` tuples `(head_id_key:int64, vid:int32, version:uint8,
 
 ### Distance implementation
 
-Vendor adapted SPTAG `DistanceUtils` / `InstructionUtils` under `as/src/vector/` with Microsoft MIT license preserved. Scalar fallback always built; SIMD in separate translation units with runtime CPUID dispatch on x86.
+Vendor-adapted SPTAG `DistanceUtils` scalar code under `as/src/vector/` (`sptag_distance.h`, `vector_distance.cc`) with Microsoft MIT license preserved. **Shipped:** scalar only. **Follow-up:** optional SIMD in separate translation units with runtime CPUID dispatch on x86 (not required for Phase 4 client wiring).
 
 ### Namespace config
 

@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Aerospike CE currently defaults `AS_CLUSTER_SZ` to `8` in `as/include/fabric/hb.h`. The value is used in fixed-size cluster and partition ownership structures.
+Upstream Aerospike CE formerly defaulted `AS_CLUSTER_SZ` to `8` in `as/include/fabric/hb.h`. This fork raises the default to `32`. The value sizes fixed cluster and partition ownership structures.
 
 Phase 2 needs larger clusters for SPTAG throughput experiments and partition fanout.
 Those experiments need at least 9 nodes, but do not require fully dynamic

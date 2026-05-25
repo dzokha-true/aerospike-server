@@ -5,7 +5,7 @@ Two layers cover SPEC-3 today:
 | Layer | Path | Status |
 |-------|------|--------|
 | Wire + digest layout (Python, no server) | `tests/conformance/vector_distance/test_codec.py` | runs in CI |
-| Live single-node smoke (asd + raw socket) | `tests/conformance/vector_distance/smoke.py` | manual, requires Linux build |
+| Live single-node smoke (asd + raw socket) | `tests/conformance/vector_distance/smoke.py` | **not in repo yet** — planned Phase 4 |
 
 ## What `test_codec.py` locks
 
@@ -20,7 +20,9 @@ Two layers cover SPEC-3 today:
 Drift in either the encoder/decoder or the digest function breaks these
 tests, so the SPTAG client and server cannot silently disagree.
 
-## What `smoke.py` is meant to do (TODO Phase 4)
+## Planned live smoke (Phase 4)
+
+`smoke.py` will:
 
 1. Start asd with a vector-enabled namespace.
 2. Insert a record at `head_id_key=42` whose blob bin holds a synthetic
@@ -30,9 +32,13 @@ tests, so the SPTAG client and server cannot silently disagree.
 4. Assert top-K ordering, dedupe, and per-key status code paths.
 
 The harness depends on the SPTAG-side write path (Phase 4) for record
-seeding. Until that lands, run the codec tests in CI and the live smoke
-manually with a hand-seeded record:
+seeding. Until that lands, run the codec tests in CI and gtests locally:
 
 ```bash
+make -C as run-vector-tests
 python3 -m unittest tests.conformance.vector_distance.test_codec
 ```
+
+`SPEC-3-OP-001` / `SPEC-3-OP-002` per-key statuses are covered at wire level
+in `vector_wire_test.cc`; full handler integration requires the planned smoke
+or Phase 4 SPTAG A/B test (`SPEC-4-INTEG-001`).

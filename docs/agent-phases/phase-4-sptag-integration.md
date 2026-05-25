@@ -61,7 +61,7 @@ Before coding, verify:
 
 - [ ] `docs/contracts/sptag-aerospike.md` has posting layout matching SPTAG `AEROSPIKEIO` write path
 - [ ] Server built with Phase 3 ops
-- [ ] Forked C client can send `AS_MSG_OP_VECTOR_DISTANCE` (or use test harness in server repo)
+- [ ] Forked C client can send `VECTOR_DISTANCE` (`AS_MSG_INFO1_BATCH` + field **44**, response field **45**), or use `tests/conformance/vector_distance/` codec tests in this repo
 - [ ] Test index built with `Storage=AEROSPIKEIO`
 
 ---
@@ -104,9 +104,9 @@ Do **not** move `m_pGraph` to server.
 
 If this agent only has server repo: write `docs/contracts/client-vector-distance.md` with:
 
-- Op code number from Phase 3
-- Serialized request/response (field order, types)
-- Example pseudocode for parallel batch
+- Field types **44** / **45** and `AS_MSG_INFO1_BATCH` requirement (see `docs/contracts/sptag-aerospike.md`)
+- Serialized request/response v1 (field order, types)
+- Example pseudocode for parallel per-owner fanout
 
 If agent has client repo: implement op registration + send/receive matching contract.
 
@@ -182,4 +182,4 @@ Only if required for your index build:
 
 ## After you finish
 
-Project restart track complete. Future work: optimize batch sizes, min-per-head vs per-tail, optional `VECTOR_BATCH_GET`, larger `AS_CLUSTER_SZ`.
+Project restart track complete. Future work: SIMD distance TUs (ADR 0004 follow-up), optimize batch sizes and per-node fanout, live `smoke.py` conformance against asd.

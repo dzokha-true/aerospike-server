@@ -108,11 +108,16 @@ Head ID owned by another node.
 
 ### When
 
-`VECTOR_DISTANCE` runs locally.
+`VECTOR_DISTANCE` handler runs locally (integration) or wire encodes key status (unit).
 
 ### Then
 
 Per-key `wrong-owner`; other local keys still score.
+
+### Tests
+
+- Wire: `as/src/vector/vector_wire_test.cc`
+- Handler: `as_vector_batch_handle` in `vector_batch.c` (live multi-node or Phase 4 smoke)
 
 ## SPEC-3-OP-002: Malformed posting per-key
 
@@ -127,3 +132,8 @@ Request lists that head and a valid head.
 ### Then
 
 Invalid head `malformed-posting`; valid head scores.
+
+### Tests
+
+- Parser: `vector_posting_test.cc` (malformed blob / negative VID)
+- Handler: `vector_batch.c` + planned Phase 4 live smoke

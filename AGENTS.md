@@ -2,7 +2,7 @@
 
 ## Goal
 
-This repo is an Aerospike Database Server CE fork used as the storage backend for Microsoft SPTAG `AEROSPIKEIO`. Read `CONTEXT.md` first: SPTAG owns the ANN graph and global merge; Aerospike owns posting-list records and future key-scoped vector distance work.
+This repo is an Aerospike Database Server CE fork used as the storage backend for Microsoft SPTAG `AEROSPIKEIO`. Read `CONTEXT.md` first: SPTAG owns the ANN graph and global merge; Aerospike owns posting-list records and owner-local `VECTOR_DISTANCE` on listed Head IDs (Phase 3).
 
 ## Build
 
@@ -27,6 +27,8 @@ The server build is GNU Make based. CMake is used for bundled C++ dependencies s
 | `as/src/query/` | Background and query job execution |
 | `as/src/sindex/` | Secondary index implementation |
 | `as/src/geospatial/` | Existing C++ server feature precedent |
+| `as/src/vector/` | EC528 posting parser, SPTAG distance, wire codec, batch handler |
+| `as/include/vector/` | EC528 vector subsystem headers |
 | `as/include/` | Server headers matching subsystem layout |
 | `cf/` | Common shared library linked by server |
 | `modules/` | Git submodules used by build |
@@ -43,6 +45,7 @@ The server build is GNU Make based. CMake is used for bundled C++ dependencies s
 - Read op bin handling: `as/src/transaction/rw_utils.c`
 - Write op handling: `as/src/transaction/write.c`
 - Batch parsing and subtransactions: `as/src/base/batch.c`
+- `VECTOR_DISTANCE` dispatch: `as/src/base/batch.c` → `as/src/vector/vector_batch.c`
 - Particle types: `as/include/base/datamodel.h`
 - Particle vtables: `as/src/base/particle.c`
 - Blob/vector byte handling: `as/src/base/particle_blob.c`
@@ -54,9 +57,9 @@ The server build is GNU Make based. CMake is used for bundled C++ dependencies s
 
 - SPTAG owns `graph.bin`, RNG/BKT/KDT graph state, coarse search, and global top-K merge.
 - Aerospike stores posting-list blobs keyed by Head ID in `AEROSPIKEIO`.
-- `AS_PARTICLE_TYPE_VECTOR` is currently a blob-backed particle type; CE has no native vector distance.
-- `AS_CLUSTER_SZ` defaults to `8` and must remain a power of two unless the cluster-size work changes all dependent constraints.
-- Future vector distance must be key-scoped: never scan a whole partition for ANN query work.
+- `AS_PARTICLE_TYPE_VECTOR` is a blob-backed particle type; tail distance uses `as/src/vector/` (scalar SPTAG-adapted math), not bin-op read hooks.
+- `AS_CLUSTER_SZ` defaults to `32` (EC528 Phase 2) and must remain a power of two.
+- `VECTOR_DISTANCE` is key-scoped: never scan a whole partition for ANN query work.
 - Namespace vector config must match SPTAG index config before server-side distance can decode posting bytes.
 
 ## Fork Markers
@@ -85,3 +88,5 @@ Do not remove upstream copyright headers. This repo is AGPL for distributed bina
 - `docs/agent-phases/phase-4-sptag-integration.md`
 
 Phase 2 and Phase 3 agents must read `docs/contracts/sptag-aerospike.md` before coding.
+
+Doc lint: `./tests/docs/check_docs.sh`

@@ -4,6 +4,8 @@
 **Depends on:** nothing  
 **Blocks:** Phases 2–4 (agents need these docs to avoid wrong assumptions)
 
+> **EC528 status:** Phase 1 complete. Deliverables exist. For current wire protocol, cluster size, and ADR status, prefer `docs/contracts/sptag-aerospike.md`, `docs/adr/0003-cluster-size-limit.md`, `docs/adr/0004-vector-distance-protocol.md`, and `docs/architecture/module-map.md` over historical placeholders in this file.
+
 ---
 
 ## Project context (read first)
@@ -103,41 +105,41 @@ Wire contract between SPTAG and this fork. Include:
 |-------|-------|-----------------|------------------|
 | Coarse search | `m_pGraph` | — | — |
 | Fetch postings | — | MultiGet by head ID | MultiGet / batch get |
-| Tail distance | `ComputeDistance` | — | `AS_MSG_OP_VECTOR_DISTANCE` |
+| Tail distance | `ComputeDistance` | — | `VECTOR_DISTANCE` (batch field **44**) |
 | Top-K | client merge | — | client merge |
 
 **Posting bin format:**
 
 - Placeholder section: `## Posting byte layout (from SPTAG)` with `TODO: fill from SPTAG AEROSPIKEIO source`
-- Namespace knobs: `vector-dimension`, `vector-metric {l2|cosine|dot}`
+- Namespace knobs: `vector-dimension`, `vector-value-type`, `vector-metric {l2|cosine|inner-product}`
 - Keys = head ID; bin names as SPTAG defines
 
 **Out of contract:** `graph.bin`, RNG adjacency, BK-tree on server.
 
-**Opcode placeholders:** `AS_MSG_OP_VECTOR_DISTANCE`, `AS_MSG_OP_VECTOR_BATCH_GET` (IDs TBD in Phase 3).
+**Wire (resolved in Phase 3):** `AS_MSG_FIELD_TYPE_VECTOR_DISTANCE` (44) and response field 45 with `AS_MSG_INFO1_BATCH`. See ADR 0004.
 
 ### 4. `docs/architecture/module-map.md`
 
 One page with mermaid:
 
 ```
-Client → proto.h → transaction → storage → particle
+Client → proto.h → service.c → batch.c → vector_batch.c → storage
 ```
 
-Annotate where Phase 3 will add `as/src/vector/`.
+(Non-batch reads still use transaction → read.c → rw_utils.c.) Annotate `as/src/vector/` and `as/include/vector/`.
 
 ### 5. `docs/adr/0001-hybrid-sptag-storage-split.md`
 
 ADR: SPTAG owns ANN graph; Aerospike owns postings + future tail distance.  
 Include: alternatives considered (full ANN on server, UDF-only), why rejected.
 
-### 6. `docs/adr/0002-vector-bin-format.md` (stub)
+### 6. `docs/adr/0002-vector-bin-format.md`
 
-Status: proposed. Link to contract doc posting section. Fill when SPTAG layout known.
+Status: **accepted**. Posting layout in contract doc.
 
-### 7. `docs/adr/0003-cluster-size-limit.md` (stub)
+### 7. `docs/adr/0003-cluster-size-limit.md`
 
-Status: proposed. Note `AS_CLUSTER_SZ=8` in `as/include/fabric/hb.h`, power-of-2 requirement. Phase 2 implements.
+Status: **accepted**. `AS_CLUSTER_SZ=32` in `as/include/fabric/hb.h` (Phase 2 implemented).
 
 ### 8. Optional: `CONTEXT-MAP.md`
 
@@ -181,7 +183,7 @@ Mandate: read `00-spec-and-test-driven.md`; cite `SPEC-*` in tests; red-green-re
 | `as/include/fabric/hb.h` | `AS_CLUSTER_SZ` |
 | `as/include/base/datamodel.h` | `AS_PARTICLE_TYPE_VECTOR` |
 | `as/src/base/particle.c` | VECTOR → blob vtable |
-| `as/include/base/proto.h` | Existing `AS_MSG_OP_*` pattern |
+| `as/include/base/proto.h` | `AS_MSG_OP_*` and EC528 field types 44/45 |
 | `as/src/geospatial/geospatial.cc` | C++ module precedent |
 
 ---

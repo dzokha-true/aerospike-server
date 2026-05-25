@@ -1,8 +1,10 @@
 # Phase 2 — Raise 8-node cluster limit
 
 **Repo:** Aerospike server CE fork  
-**Depends on:** Phase 1 recommended (read `AGENTS.md`, ADR stub 0003)  
+**Depends on:** Phase 1 recommended (read `AGENTS.md`, ADR 0003)  
 **Blocks:** Large-scale multi-node benchmarks in Phase 4
+
+> **EC528 status:** Implemented. `AS_CLUSTER_SZ` is **32** in `as/include/fabric/hb.h`. The Problem section below describes the **former** upstream default.
 
 ---
 
