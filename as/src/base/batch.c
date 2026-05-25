@@ -48,6 +48,7 @@
 #include "base/service.h"
 #include "base/stats.h"
 #include "base/thr_tsvc.h"
+#include "vector/vector_batch.h"
 #include "base/transaction.h"
 #include "transaction/rw_utils.h"
 
@@ -915,6 +916,7 @@ as_batch_queue_task(as_transaction* btr)
 	as_msg_field* end;
 	as_msg_field* bf = 0;
 	as_msg_field* predexp_mf = 0;
+	bool vector_distance = false;
 
 	for (int i = 0; i < bmsg->n_fields; i++) {
 		if ((uint8_t*)mf >= limit) {
@@ -931,8 +933,16 @@ as_batch_queue_task(as_transaction* btr)
 		else if (mf->type == AS_MSG_FIELD_TYPE_PREDEXP) {
 			predexp_mf = mf;
 		}
+		else if (mf->type == AS_MSG_FIELD_TYPE_VECTOR_DISTANCE) {
+			vector_distance = true;
+		}
 
 		mf = end;
+	}
+
+	// EC528: VECTOR_DISTANCE uses batch info bit but not batch index field.
+	if (vector_distance) {
+		return as_vector_batch_handle(btr);
 	}
 
 	if (! bf) {

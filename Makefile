@@ -206,4 +206,9 @@ tags etags:
 # Common target definitions:
 ifneq ($(EEREPO),)
   include $(EEREPO)/make_in/Makefile.targets
+else
+.PHONY: tests run-tests
+tests run-tests:
+	$(MAKE) -C as vector-tests
+	$(MAKE) -C as run-vector-tests
 endif

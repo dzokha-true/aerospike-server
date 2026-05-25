@@ -36,7 +36,8 @@
  * Maximum number of nodes in a cluster.
  */
 #ifndef AS_CLUSTER_SZ
-#define AS_CLUSTER_SZ 8
+// EC528: allow Phase 2 SPTAG benchmark clusters beyond the upstream 8-node cap.
+#define AS_CLUSTER_SZ 32
 #endif
 
 /**

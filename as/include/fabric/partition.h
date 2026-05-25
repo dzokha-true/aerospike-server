@@ -132,9 +132,9 @@ typedef struct as_partition_s {
 	// @ 64-byte-aligned boundary.
 
 	bool immigrators[AS_CLUSTER_SZ];
-	// Byte alignment depends on AS_CLUSTER_SZ - pad below to realign.
+	// EC528: keep following array aligned after raising AS_CLUSTER_SZ beyond 8.
 
-	uint8_t align_3[AS_CLUSTER_SZ == 8 ? 56 : 0];
+	uint8_t align_3[64 - (AS_CLUSTER_SZ % 64)];
 	// @ 64-byte-aligned boundary.
 
 	cf_node witnesses[AS_CLUSTER_SZ];

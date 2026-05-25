@@ -42,6 +42,7 @@
 
 #include "base/cfg.h"
 #include "base/datamodel.h"
+#include "vector/vector_types.h"
 #include "base/index.h"
 #include "base/proto.h"
 #include "base/thr_info.h"
@@ -158,6 +159,10 @@ as_namespace_create(const char* name)
 	ns->geo2dsphere_within_max_cells = 12;
 	ns->geo2dsphere_within_level_mod = 1;
 	ns->geo2dsphere_within_earth_radius_meters = 6371000; // Wikipedia, mean
+
+	// EC528: vector distance disabled until mandatory config is set.
+	ns->vector_value_type = AS_VECTOR_VALUE_TYPE_BAD;
+	ns->vector_metric = AS_VECTOR_METRIC_BAD;
 
 	// Special defaults that differ between CE and EE.
 	as_config_init_namespace(ns);

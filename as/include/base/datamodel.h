@@ -947,6 +947,15 @@ typedef struct as_namespace_s {
 	uint16_t geo2dsphere_within_level_mod;
 	uint32_t geo2dsphere_within_earth_radius_meters;
 
+	// EC528: SPTAG vector distance namespace config.
+	uint32_t vector_dimension;
+	uint8_t vector_value_type;
+	uint8_t vector_metric;
+	uint32_t vector_max_head_ids;
+	uint32_t vector_max_topk;
+	uint32_t vector_max_query_bytes;
+	uint32_t vector_max_response_bytes;
+
 	//--------------------------------------------
 	// Statistics and histograms.
 	//

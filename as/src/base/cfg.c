@@ -67,6 +67,7 @@
 
 #include "base/cfg_tree_wrapper.h"
 #include "base/datamodel.h"
+#include "vector/vector_types.h"
 #include "base/index.h"
 #include "base/mrt_monitor.h"
 #include "base/proto.h"
@@ -498,6 +499,13 @@ typedef enum {
 	CASE_NAMESPACE_TOMB_RAIDER_UNMARK_THREADS,
 	CASE_NAMESPACE_TRANSACTION_PENDING_LIMIT,
 	CASE_NAMESPACE_TRUNCATE_THREADS,
+	CASE_NAMESPACE_VECTOR_DIMENSION,
+	CASE_NAMESPACE_VECTOR_VALUE_TYPE,
+	CASE_NAMESPACE_VECTOR_METRIC,
+	CASE_NAMESPACE_VECTOR_MAX_HEAD_IDS,
+	CASE_NAMESPACE_VECTOR_MAX_TOPK,
+	CASE_NAMESPACE_VECTOR_MAX_QUERY_BYTES,
+	CASE_NAMESPACE_VECTOR_MAX_RESPONSE_BYTES,
 	CASE_NAMESPACE_WRITE_COMMIT_LEVEL_OVERRIDE,
 	CASE_NAMESPACE_XDR_BIN_TOMBSTONE_TTL,
 	CASE_NAMESPACE_XDR_TOMB_RAIDER_PERIOD,
@@ -1112,6 +1120,13 @@ const cfg_opt NAMESPACE_OPTS[] = {
 		{ "tomb-raider-unmark-threads",		CASE_NAMESPACE_TOMB_RAIDER_UNMARK_THREADS },
 		{ "transaction-pending-limit",		CASE_NAMESPACE_TRANSACTION_PENDING_LIMIT },
 		{ "truncate-threads",				CASE_NAMESPACE_TRUNCATE_THREADS },
+		{ "vector-dimension",				CASE_NAMESPACE_VECTOR_DIMENSION },
+		{ "vector-value-type",				CASE_NAMESPACE_VECTOR_VALUE_TYPE },
+		{ "vector-metric",					CASE_NAMESPACE_VECTOR_METRIC },
+		{ "vector-max-head-ids",			CASE_NAMESPACE_VECTOR_MAX_HEAD_IDS },
+		{ "vector-max-topk",				CASE_NAMESPACE_VECTOR_MAX_TOPK },
+		{ "vector-max-query-bytes",			CASE_NAMESPACE_VECTOR_MAX_QUERY_BYTES },
+		{ "vector-max-response-bytes",		CASE_NAMESPACE_VECTOR_MAX_RESPONSE_BYTES },
 		{ "write-commit-level-override",	CASE_NAMESPACE_WRITE_COMMIT_LEVEL_OVERRIDE },
 		{ "xdr-bin-tombstone-ttl",			CASE_NAMESPACE_XDR_BIN_TOMBSTONE_TTL },
 		{ "xdr-tomb-raider-period",			CASE_NAMESPACE_XDR_TOMB_RAIDER_PERIOD },
@@ -3297,6 +3312,40 @@ as_config_init(const char* config_file)
 				break;
 			case CASE_NAMESPACE_TRUNCATE_THREADS:
 				ns->n_truncate_threads = cfg_u32(&line, 1, MAX_TRUNCATE_THREADS);
+				break;
+			case CASE_NAMESPACE_VECTOR_DIMENSION:
+				ns->vector_dimension = cfg_u32(&line, 1,
+						AS_VECTOR_MAX_DIMENSION);
+				break;
+			case CASE_NAMESPACE_VECTOR_VALUE_TYPE: {
+				as_vector_value_type vt;
+
+				if (! as_vector_value_type_from_string(line.val_tok_1, &vt)) {
+					cfg_unknown_val_tok_1(&line);
+				}
+				ns->vector_value_type = (uint8_t)vt;
+				break;
+			}
+			case CASE_NAMESPACE_VECTOR_METRIC: {
+				as_vector_metric metric;
+
+				if (! as_vector_metric_from_string(line.val_tok_1, &metric)) {
+					cfg_unknown_val_tok_1(&line);
+				}
+				ns->vector_metric = (uint8_t)metric;
+				break;
+			}
+			case CASE_NAMESPACE_VECTOR_MAX_HEAD_IDS:
+				ns->vector_max_head_ids = cfg_u32_no_checks(&line);
+				break;
+			case CASE_NAMESPACE_VECTOR_MAX_TOPK:
+				ns->vector_max_topk = cfg_u32_no_checks(&line);
+				break;
+			case CASE_NAMESPACE_VECTOR_MAX_QUERY_BYTES:
+				ns->vector_max_query_bytes = cfg_u32_no_checks(&line);
+				break;
+			case CASE_NAMESPACE_VECTOR_MAX_RESPONSE_BYTES:
+				ns->vector_max_response_bytes = cfg_u32_no_checks(&line);
 				break;
 			case CASE_NAMESPACE_WRITE_COMMIT_LEVEL_OVERRIDE:
 				switch (cfg_find_tok(line.val_tok_1, NAMESPACE_WRITE_COMMIT_OPTS,
