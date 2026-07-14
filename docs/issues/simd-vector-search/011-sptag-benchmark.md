@@ -1,7 +1,7 @@
 ---
 issue: 11
 title: "C2: 3-node benchmark — baseline vs offload-scalar vs offload-NEON"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 3, 9, 10
 ---
@@ -51,3 +51,5 @@ are not stalls.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T23:55Z [orchestrator] Implemented directly. Evidence: quick BENCH_OK (parity 1.0000 both legs; 156.1 MB -> 1.1 MB net); full run: baseline 142.5 QPS/14.06 GB vs offload-scalar 304.9 QPS/13.7 MB vs offload-neon 465.1 QPS/13.7 MB; node CPU 19% -> ~41%; overlap 0.9994/0.9986 (gate 0.99). Results + methodology + caveats in docs/benchmarks/phase-4-results.md (SPTAG repo). Harness gained functional port-probe readiness after intermittent multi-minute cluster startup stalls.
+- 2026-07-14T23:55Z [orchestrator] VERDICT: PASS.

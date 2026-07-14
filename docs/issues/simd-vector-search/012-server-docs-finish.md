@@ -1,7 +1,7 @@
 ---
 issue: 12
 title: "server docs finish: ADR 0004 follow-up, solutions, phase docs"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 11
 ---
@@ -32,3 +32,5 @@ Report path: `docs/jobs/simd-vector-search/012-server-docs-finish-01.md`
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T23:55Z [orchestrator] Docs landed: ADR 0004 SIMD-shipped section (kernel table, env var, CPUID/XCR0 policy, NEON baseline, tolerance model, measured speedups); phase-4 doc marked COMPLETE with evidence pointers; conformance README documents live smoke; three docs/solutions entries (client version validation, first-Linux-build breakage inventory, arm64 port). Orchestrator-graded per the finish-boundary exception.
+- 2026-07-14T23:55Z [orchestrator] VERDICT: PASS (orchestrator-graded).

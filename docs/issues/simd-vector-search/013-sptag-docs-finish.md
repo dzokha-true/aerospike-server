@@ -1,7 +1,7 @@
 ---
 issue: 13
 title: "sptag docs finish: ADR 0002 sync/guard notes, glossary, contracts"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 11
 ---
@@ -34,3 +34,5 @@ Report path (in SPTAG-upstream):
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T23:55Z [orchestrator] Docs landed: ADR 0002 V1-synchronous + verification consequences and quantizer refusal; CONTEXT.md kernel-table glossary entry; contract doc verified-build/harness entry points; solutions note (arm64 port + client modules path). Orchestrator-graded per the finish-boundary exception.
+- 2026-07-14T23:55Z [orchestrator] VERDICT: PASS (orchestrator-graded).
