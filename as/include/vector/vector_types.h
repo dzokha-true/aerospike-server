@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+struct as_namespace_s;
+
 #define AS_VECTOR_WIRE_VERSION 1
 
 #define AS_VECTOR_HEAD_ID_MAX INT32_MAX

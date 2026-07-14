@@ -1,0 +1,14 @@
+# EC528: single vector-configured asd node.
+# docker compose -f docker/compose-single.yml up -d
+services:
+  asd:
+    image: as-vector:check
+    container_name: as-vector-single
+    environment:
+      VECTOR_DIM: ${VECTOR_DIM:-64}
+      VECTOR_TYPE: ${VECTOR_TYPE:-float}
+      VECTOR_METRIC: ${VECTOR_METRIC:-l2}
+      REPLICATION_FACTOR: "1"
+      AEROSPIKE_VECTOR_SIMD: ${AEROSPIKE_VECTOR_SIMD:-auto}
+    ports:
+      - "3000:3000"

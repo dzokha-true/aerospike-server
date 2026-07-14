@@ -1,0 +1,38 @@
+# EC528: 3-node mesh cluster with vector namespace config.
+# docker compose -f docker/compose-cluster3.yml up -d
+# Client ports: node1 3000, node2 3010, node3 3020 (container port 3000).
+x-node: &node
+  image: as-vector:check
+  environment: &node-env
+    VECTOR_DIM: ${VECTOR_DIM:-64}
+    VECTOR_TYPE: ${VECTOR_TYPE:-float}
+    VECTOR_METRIC: ${VECTOR_METRIC:-l2}
+    REPLICATION_FACTOR: "2"
+    AEROSPIKE_VECTOR_SIMD: ${AEROSPIKE_VECTOR_SIMD:-auto}
+    MESH_SEED: "asd1:3002 asd2:3002 asd3:3002"
+
+services:
+  asd1:
+    <<: *node
+    container_name: as-vector-1
+    environment:
+      <<: *node-env
+      NODE_ID: a1
+    ports:
+      - "3000:3000"
+  asd2:
+    <<: *node
+    container_name: as-vector-2
+    environment:
+      <<: *node-env
+      NODE_ID: a2
+    ports:
+      - "3010:3000"
+  asd3:
+    <<: *node
+    container_name: as-vector-3
+    environment:
+      <<: *node-env
+      NODE_ID: a3
+    ports:
+      - "3020:3000"

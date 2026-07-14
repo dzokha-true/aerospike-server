@@ -363,6 +363,7 @@ $(OBJECT_DIR)/geospatial/%.o: CXXFLAGS += $(S2_WNO) -std=c++17 -D__STDC_LIMIT_MA
 $(OBJECT_DIR)/geospatial/%.o: CFLAGS := $(filter-out -std=gnu99,$(CFLAGS))
 
 $(OBJECT_DIR)/vector/%.o: CXXFLAGS += -std=c++17 -D__STDC_LIMIT_MACROS
+$(OBJECT_DIR)/vector/%.o: CFLAGS := $(filter-out -std=gnu99,$(CFLAGS))
 $(OBJECT_DIR)/vector/vector_distance.o: CXXFLAGS += -std=c++17 -D__STDC_LIMIT_MACROS
 # EC528: per-object ISA flags only - never widen the global baseline
 # (-march=nocona on x86-64). Runtime CPUID dispatch gates execution.

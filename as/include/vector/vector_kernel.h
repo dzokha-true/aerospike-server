@@ -11,8 +11,8 @@
  * requested ISA that is not available in this build/CPU is a selection
  * error the caller must treat as fatal.
  *
- * This file must stay free of server dependencies (cf_*, base/*): it is
- * compiled into the standalone vector unit-test binary.
+ * This file must stay free of server dependencies (no cf_ or base code):
+ * it is compiled into the standalone vector unit-test binary.
  */
 #pragma once
 
