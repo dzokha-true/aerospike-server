@@ -4,7 +4,7 @@ tracking-issue: 1
 factory-branch: factory/simd-vector-search
 tracker: markdown
 spec: docs/spec/aerospike-simd-vector-search.md
-state: ACTIVE
+state: FINISHED
 created: 2026-07-14
 ---
 
