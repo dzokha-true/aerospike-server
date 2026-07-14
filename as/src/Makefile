@@ -152,6 +152,7 @@ VECTOR_HEADERS += vector_digest.h
 VECTOR_HEADERS += vector_distance.h
 VECTOR_HEADERS += vector_posting.h
 VECTOR_HEADERS += vector_topk.h
+VECTOR_HEADERS += vector_kernel.h
 VECTOR_HEADERS += vector_types.h
 VECTOR_HEADERS += vector_wire.h
 VECTOR_HEADERS += sptag_distance.h
@@ -159,6 +160,7 @@ VECTOR_HEADERS += sptag_distance.h
 VECTOR_SOURCES += vector_batch.c
 VECTOR_SOURCES += vector_digest.c
 VECTOR_SOURCES += vector_distance.cc
+VECTOR_SOURCES += vector_kernel.c
 VECTOR_SOURCES += vector_posting.c
 VECTOR_SOURCES += vector_topk.c
 VECTOR_SOURCES += vector_types.c
@@ -357,11 +359,11 @@ $(OBJECT_DIR)/vector/vector_distance.o: CXXFLAGS += -std=c++17 -D__STDC_LIMIT_MA
 
 # EC528: vector unit tests (gtest)
 VECTOR_LIB_SOURCES = vector/vector_types.c vector/vector_posting.c \
-		vector/vector_topk.c vector/vector_wire.c
+		vector/vector_topk.c vector/vector_wire.c vector/vector_kernel.c
 VECTOR_LIB_CC = vector/vector_distance.cc
 VECTOR_TEST_SOURCES = vector/vector_math_test.cc vector/vector_posting_test.cc \
 		vector/vector_topk_test.cc vector/vector_wire_test.cc \
-		vector/vector_cfg_test.cc
+		vector/vector_cfg_test.cc vector/vector_kernel_test.cc
 VECTOR_UNIT_TESTS = $(BIN_DIR)/vector_unit_tests
 VECTOR_TEST_INCLUDES = -I"$(DEPTH)/as/include"
 GTEST_PREFIX ?= $(shell brew --prefix googletest 2>/dev/null)

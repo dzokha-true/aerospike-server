@@ -1,7 +1,7 @@
 ---
 issue: 2
 title: "server A1: vector kernel dispatch table, env override, hot-path hoist"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: none
 ---
@@ -59,3 +59,5 @@ Duration hint: build+tests ~3m on this host.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T05:40Z [orchestrator] Implemented directly per owner directive (see rulings file). Evidence: `make -C as run-vector-tests` -> 31 tests from 7 suites, PASSED 31 (baseline was 24/5). RUN greps: AEROSPIKE_VECTOR_SIMD present in vector_kernel.c/vector_batch.c; as_vector_kernel used in vector_batch.c; public API preserved in vector_distance.h. vector_batch.c production compile deferred to Linux builds (#8 image + CI) — macOS cannot compile as/src production objects; recorded as known gap, not silent.
+- 2026-07-14T05:40Z [orchestrator] VERDICT: PASS - all frozen RUN items green locally; judge-only items self-audited under the owner's direct-implementation waiver.

@@ -6,10 +6,14 @@
 #include "vector/vector_batch.h"
 
 #include <errno.h>
+#include <pthread.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "citrusleaf/alloc.h"
 #include "citrusleaf/cf_digest.h"
+
+#include "log.h"
 
 #include "base/cfg.h"
 #include "base/datamodel.h"
@@ -23,11 +27,36 @@
 #include "storage/storage.h"
 #include "vector/vector_digest.h"
 #include "vector/vector_distance.h"
+#include "vector/vector_kernel.h"
 #include "vector/vector_posting.h"
 #include "vector/vector_topk.h"
 #include "vector/vector_types.h"
 #include "vector/vector_wire.h"
 
+
+// EC528: the SIMD kernel ISA is process-global, resolved once from
+// AEROSPIKE_VECTOR_SIMD on the first VECTOR_DISTANCE request. An invalid
+// mode or an explicitly requested unavailable ISA is fatal - no fallback.
+static pthread_once_t g_vector_kernel_once = PTHREAD_ONCE_INIT;
+static as_vector_isa g_vector_kernel_isa = AS_VECTOR_ISA_SCALAR;
+
+static void
+vector_kernel_choose_once(void)
+{
+	const char* mode = getenv("AEROSPIKE_VECTOR_SIMD");
+	int rv = as_vector_kernel_choose(mode, &g_vector_kernel_isa);
+
+	if (rv != 0) {
+		cf_crash(AS_BATCH, "invalid AEROSPIKE_VECTOR_SIMD '%s': %s",
+				mode != NULL ? mode : "",
+				rv == -1 ? "unknown mode" :
+						"isa not available in this build/cpu");
+	}
+
+	cf_info(AS_BATCH, "VECTOR_DISTANCE kernel isa '%s' (AEROSPIKE_VECTOR_SIMD=%s)",
+			as_vector_isa_name(g_vector_kernel_isa),
+			mode != NULL ? mode : "auto");
+}
 
 static int
 send_vector_msg(as_transaction* btr, uint8_t result_code, const uint8_t* payload,
@@ -179,6 +208,23 @@ as_vector_batch_handle(as_transaction* btr)
 		return send_vector_msg(btr, AS_OK, pay, sizeof(pay));
 	}
 
+	// EC528: resolve the distance kernel once per request - never per
+	// posting element. Namespace vector config was validated above, so a
+	// NULL here can only be a registry bug; stay loud but survivable.
+	pthread_once(&g_vector_kernel_once, vector_kernel_choose_once);
+
+	as_vector_kernel_fn kernel_fn = as_vector_kernel_get(g_vector_kernel_isa,
+			(as_vector_value_type)ns->vector_value_type,
+			(as_vector_metric)ns->vector_metric);
+
+	if (kernel_fn == NULL) {
+		cf_warning(AS_BATCH, "no '%s' kernel for value-type %u metric %u",
+				as_vector_isa_name(g_vector_kernel_isa),
+				(uint32_t)ns->vector_value_type, (uint32_t)ns->vector_metric);
+		uint8_t pay[12] = { AS_VECTOR_WIRE_VERSION, AS_VECTOR_REQ_SERVER_ERROR };
+		return send_vector_msg(btr, AS_OK, pay, sizeof(pay));
+	}
+
 	as_vector_scored_tail* scored =
 			cf_malloc(req.topk * sizeof(as_vector_scored_tail));
 	as_vector_wire_key_status* statuses =
@@ -281,16 +327,11 @@ as_vector_batch_handle(as_transaction* btr)
 			as_vector_posting_element elem;
 
 			while (as_vector_posting_iter_next(&pit, &elem)) {
-				float dist = 0.0f;
-
-				if (as_vector_distance_compute(
-							(as_vector_value_type)ns->vector_value_type,
-							(as_vector_metric)ns->vector_metric,
-							ns->vector_dimension,
-							req.query_bytes, elem.payload, &dist) != 0) {
-					malformed = true;
-					break;
-				}
+				// EC528: kernel resolved once before the head loop; posting
+				// payload size is enforced by the iterator, so the call
+				// cannot fail per element.
+				float dist = kernel_fn(req.query_bytes, elem.payload,
+						ns->vector_dimension);
 
 				as_vector_scored_tail st = {
 					.head_id_key = head_id,
