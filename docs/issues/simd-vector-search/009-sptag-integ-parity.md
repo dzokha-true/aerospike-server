@@ -1,7 +1,7 @@
 ---
 issue: 9
 title: "sptag B3: SPEC-4-INTEG-001 end-to-end top-K parity (offload vs baseline)"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 6, 7, 8
 ---
@@ -55,3 +55,5 @@ Duration hint: index build + two query passes ~15-30m.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T23:20Z [orchestrator] Implemented directly. Evidence: PARITY_OK overlap=1.0000 (mean AND worst, 100 queries, K=10); build wrote 583 postings for 5000 vectors into live asd; both legs via ssdserving SearchResult files; server log 'VECTOR_DISTANCE kernel isa neon' proves the offload leg hit the op. Diagnosis chain recorded: client rejected SHA build version (fixed via local 8.0.0.0-start tag; solutions doc); baseline leg segfaulted via MergeAsync on uninitialized SPFresh pool in read-only search (null-guard + AsyncMergeInSearch=false).
+- 2026-07-14T23:20Z [orchestrator] VERDICT: PASS.
