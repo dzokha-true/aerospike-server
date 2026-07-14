@@ -1,7 +1,7 @@
 ---
 issue: 4
 title: "server A2: x86 SSE/AVX2/AVX-512 kernels + CPUID dispatch"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 3
 ---
@@ -67,3 +67,5 @@ compiles as a stall.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T08:30Z [orchestrator] Implemented directly (owner directive). Commit 0850e54. Evidence: native arm64 suite green (x86 TUs arch-excluded); emulated x86 X86_TESTS_OK with SSE parity RUN+PASS; MIT headers in all three TUs; xgetbv/XCR0 checks in vector_cpu.c; per-object -msse4.1/-mavx2/-mavx512f+bw flags only. Deviation: AVX2 unavailable under this host's emulator (cpuinfo-verified) - post-freeze ruling in rulings file; native AVX2 coverage via CI workflow_dispatch after push.
+- 2026-07-14T08:30Z [orchestrator] VERDICT: PASS with recorded environment deviation (AVX2 emulation gap; compensated by CI).

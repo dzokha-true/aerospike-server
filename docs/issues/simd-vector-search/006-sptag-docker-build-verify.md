@@ -1,7 +1,7 @@
 ---
 issue: 6
 title: "sptag B2: Docker build with forked client; offload test suite runs real"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: none
 ---
@@ -62,3 +62,5 @@ Slow docker builds are not stalls.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T08:30Z [orchestrator] Implemented directly. SPTAG commits 10a6e5c + path fix. Evidence: docker build exit 0 on arm64; probe marker exactly SPTAG_HAS_AEROSPIKE_VECTOR_DISTANCE=1; /app/run-offload-tests.sh in image passes (10/10 cases, 36/36 assertions); forked client (branch ec528/modules-abs-path) cloned+built from source; STOCK_CLIENT_REMOVED. Scope addition (ruled): arm64 port of SPTAG SIMD/prefetch/mm_malloc x86-isms (SPTAG_ARCH_X86 guards, scalar fallback) - required for any arm64 build; no x86 behavior change. Client-repo defect found+fixed on pushed branch ec528/modules-abs-path (relative COMMON path broke every build since the space-safe commit).
+- 2026-07-14T08:30Z [orchestrator] VERDICT: PASS.

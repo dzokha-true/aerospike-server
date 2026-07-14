@@ -1,7 +1,7 @@
 ---
 issue: 3
 title: "server A3: NEON distance kernels (arm64)"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 2
 ---
@@ -52,3 +52,5 @@ Duration hint: build+tests ~3m.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T06:20Z [orchestrator] Implemented directly (owner directive). Evidence: 36/36 gtests (was 31); VectorNeon suite ran 5 tests on this arm64 host including 4 parity cases (all types x l2/cosine/inner-product, dims 1..768, rel 1e-5); vld1q intrinsics present; __aarch64__ guard present; auto->neon verified by test. Commit 7f0c015.
+- 2026-07-14T06:20Z [orchestrator] VERDICT: PASS - frozen RUN items green; float-lane accumulation tolerance documented in test header.

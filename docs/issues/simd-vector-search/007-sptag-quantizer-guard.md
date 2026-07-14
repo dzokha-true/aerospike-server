@@ -1,7 +1,7 @@
 ---
 issue: 7
 title: "sptag B1: quantizer guard for VECTOR_DISTANCE offload + tests"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 6
 ---
@@ -53,3 +53,5 @@ Duration hint: incremental image rebuild ~10-20m.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T08:30Z [orchestrator] Implemented directly. SPTAG commit 009267e. Evidence: quantizer-active -> DiskIOFail before any KV call (fake records 0 calls); suite 10/10 cases 36/36 assertions in dev container AND in the rebuilt image (baseline was 9/33); guard greps present in VectorDistanceOffload.h/ExtraDynamicSearcher.h/test/ADR. Guard placed at Run() entry via p_index->m_pQuantizer (runtime signal; constructor cannot see the quantizer) - satisfies the size-contract defense (the quantizer is the only divergence source).
+- 2026-07-14T08:30Z [orchestrator] VERDICT: PASS.

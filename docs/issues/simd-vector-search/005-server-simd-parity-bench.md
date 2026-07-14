@@ -1,7 +1,7 @@
 ---
 issue: 5
 title: "server A4: randomized SIMD parity suite + kernel microbenchmark"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 4
 ---
@@ -50,3 +50,5 @@ Duration hint: native ~5m; emulated x86 pass ~10-20m.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T08:30Z [orchestrator] Implemented directly. Evidence: 38 tests/10 suites, 37 passed + 1 arch-skip natively; VectorParity ran NEON row vs scalar oracle (seed 20260714); vector_bench built and produced tables (NEON 3.4-4.7x float, 5.5-9.1x int8); docs/benchmarks/simd-kernels.md committed with tolerance policy incl accumulation-order bound + EMULATED caveats; emulated x86 leg 34 passed/3 skipped X86_TESTS_OK with SSE parity run.
+- 2026-07-14T08:30Z [orchestrator] VERDICT: PASS - tolerance model extended with documented n*max_term*eps term after full-range int16 cancellation exposed oracle order-sensitivity (recorded in results doc).
