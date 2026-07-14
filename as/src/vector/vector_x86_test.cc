@@ -32,11 +32,26 @@ constexpr uint32_t kDims[] = { 1, 3, 4, 7, 8, 15, 16, 31, 32, 33, 64, 100,
 		128, 768 };
 constexpr uint32_t kSeed = 528529;
 
+
+// Accumulation-order bound: both the scalar oracle and the SIMD kernels sum
+// per-element float terms, but in different orders. Under cancellation
+// (signed dot products) the order-dependent error is bounded by
+// n * max_term * epsilon; max_term is 4*base^2 (covers L2 diffs and dots).
+inline float
+accum_tol(as_vector_value_type vt, uint32_t dim)
+{
+	float b = vt == AS_VECTOR_VALUE_TYPE_FLOAT ? 1.0f :
+			vt == AS_VECTOR_VALUE_TYPE_UINT8 ? 255.0f :
+			vt == AS_VECTOR_VALUE_TYPE_INT8 ? 127.0f : 32767.0f;
+	return 4.0f * b * b * (float)dim * 1.1920929e-07f;
+}
+
 void
-expect_close(float expected, float actual, const char* what, uint32_t dim)
+expect_close(float expected, float actual, const char* what,
+		as_vector_value_type vt, uint32_t dim)
 {
 	float tol = 1e-5f * std::max({ 1.0f, std::abs(expected),
-			std::abs(actual) });
+			std::abs(actual) }) + accum_tol(vt, dim);
 	EXPECT_NEAR(expected, actual, tol)
 			<< what << " dim=" << dim << " seed=" << kSeed;
 }
@@ -84,7 +99,8 @@ parity_type(as_vector_isa isa, as_vector_value_type vt, const char* label)
 			ASSERT_EQ(0, as_vector_distance_compute(vt, metric, dim,
 					x.data(), y.data(), &expected));
 
-			expect_close(expected, fn(x.data(), y.data(), dim), label, dim);
+			expect_close(expected, fn(x.data(), y.data(), dim), label, vt,
+					dim);
 		}
 	}
 }

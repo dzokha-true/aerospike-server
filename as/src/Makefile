@@ -382,7 +382,8 @@ endif
 VECTOR_TEST_SOURCES = vector/vector_math_test.cc vector/vector_posting_test.cc \
 		vector/vector_topk_test.cc vector/vector_wire_test.cc \
 		vector/vector_cfg_test.cc vector/vector_kernel_test.cc \
-		vector/vector_neon_test.cc vector/vector_x86_test.cc
+		vector/vector_neon_test.cc vector/vector_x86_test.cc \
+		vector/vector_parity_test.cc
 VECTOR_UNIT_TESTS = $(BIN_DIR)/vector_unit_tests
 VECTOR_TEST_INCLUDES = -I"$(DEPTH)/as/include"
 GTEST_PREFIX ?= $(shell brew --prefix googletest 2>/dev/null)
@@ -392,17 +393,27 @@ ifneq ($(GTEST_PREFIX),)
 else
   VECTOR_TEST_LIBS = -lgtest -lgtest_main -pthread
 endif
-VECTOR_TEST_CXXFLAGS = -std=c++17 -Wall -Wextra $(VECTOR_TEST_INCLUDES)
+VECTOR_TEST_CXXFLAGS = -std=c++17 -O2 -Wall -Wextra $(VECTOR_TEST_INCLUDES)
 VECTOR_TEST_OBJ_DIR = $(OBJECT_DIR)/vector/tests
-VECTOR_TEST_OBJS = $(VECTOR_TEST_SOURCES:vector/%.cc=$(VECTOR_TEST_OBJ_DIR)/%.o) \
-		$(VECTOR_LIB_SOURCES:vector/%.c=$(VECTOR_TEST_OBJ_DIR)/%.o) \
+VECTOR_CORE_OBJS = $(VECTOR_LIB_SOURCES:vector/%.c=$(VECTOR_TEST_OBJ_DIR)/%.o) \
 		$(VECTOR_LIB_CC:vector/%.cc=$(VECTOR_TEST_OBJ_DIR)/%.o)
+VECTOR_TEST_OBJS = $(VECTOR_TEST_SOURCES:vector/%.cc=$(VECTOR_TEST_OBJ_DIR)/%.o) \
+		$(VECTOR_CORE_OBJS)
 
-.PHONY: vector-tests run-vector-tests
+# EC528: kernel microbenchmark (no gtest dependency).
+VECTOR_BENCH = $(BIN_DIR)/vector_bench
+
+.PHONY: vector-tests run-vector-tests vector-bench
 vector-tests: $(VECTOR_UNIT_TESTS)
 
 run-vector-tests: vector-tests
 	$(VECTOR_UNIT_TESTS)
+
+vector-bench: $(VECTOR_BENCH)
+
+$(VECTOR_BENCH): $(VECTOR_TEST_OBJ_DIR)/vector_bench.o $(VECTOR_CORE_OBJS)
+	@mkdir -p $(dir $@)
+	$(CXX) $(VECTOR_TEST_CXXFLAGS) -O2 -o $@ $^ -pthread
 
 $(VECTOR_TEST_OBJ_DIR)/vector_distance_sse.o: VECTOR_TEST_CXXFLAGS += -msse4.1
 $(VECTOR_TEST_OBJ_DIR)/vector_distance_avx2.o: VECTOR_TEST_CXXFLAGS += -mavx2
