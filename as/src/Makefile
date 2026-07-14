@@ -152,15 +152,22 @@ VECTOR_HEADERS += vector_digest.h
 VECTOR_HEADERS += vector_distance.h
 VECTOR_HEADERS += vector_posting.h
 VECTOR_HEADERS += vector_topk.h
+VECTOR_HEADERS += vector_cpu.h
 VECTOR_HEADERS += vector_kernel.h
 VECTOR_HEADERS += vector_types.h
 VECTOR_HEADERS += vector_wire.h
 VECTOR_HEADERS += sptag_distance.h
 
 VECTOR_SOURCES += vector_batch.c
+VECTOR_SOURCES += vector_cpu.c
 VECTOR_SOURCES += vector_digest.c
 VECTOR_SOURCES += vector_distance.cc
 VECTOR_SOURCES += vector_distance_neon.cc
+ifeq ($(ARCH), x86_64)
+  VECTOR_SOURCES += vector_distance_sse.cc
+  VECTOR_SOURCES += vector_distance_avx2.cc
+  VECTOR_SOURCES += vector_distance_avx512.cc
+endif
 VECTOR_SOURCES += vector_kernel.c
 VECTOR_SOURCES += vector_posting.c
 VECTOR_SOURCES += vector_topk.c
@@ -357,15 +364,25 @@ $(OBJECT_DIR)/geospatial/%.o: CFLAGS := $(filter-out -std=gnu99,$(CFLAGS))
 
 $(OBJECT_DIR)/vector/%.o: CXXFLAGS += -std=c++17 -D__STDC_LIMIT_MACROS
 $(OBJECT_DIR)/vector/vector_distance.o: CXXFLAGS += -std=c++17 -D__STDC_LIMIT_MACROS
+# EC528: per-object ISA flags only - never widen the global baseline
+# (-march=nocona on x86-64). Runtime CPUID dispatch gates execution.
+$(OBJECT_DIR)/vector/vector_distance_sse.o: CXXFLAGS += -msse4.1
+$(OBJECT_DIR)/vector/vector_distance_avx2.o: CXXFLAGS += -mavx2
+$(OBJECT_DIR)/vector/vector_distance_avx512.o: CXXFLAGS += -mavx512f -mavx512bw
 
 # EC528: vector unit tests (gtest)
 VECTOR_LIB_SOURCES = vector/vector_types.c vector/vector_posting.c \
-		vector/vector_topk.c vector/vector_wire.c vector/vector_kernel.c
+		vector/vector_topk.c vector/vector_wire.c vector/vector_kernel.c \
+		vector/vector_cpu.c
 VECTOR_LIB_CC = vector/vector_distance.cc vector/vector_distance_neon.cc
+ifeq ($(ARCH), x86_64)
+  VECTOR_LIB_CC += vector/vector_distance_sse.cc \
+		vector/vector_distance_avx2.cc vector/vector_distance_avx512.cc
+endif
 VECTOR_TEST_SOURCES = vector/vector_math_test.cc vector/vector_posting_test.cc \
 		vector/vector_topk_test.cc vector/vector_wire_test.cc \
 		vector/vector_cfg_test.cc vector/vector_kernel_test.cc \
-		vector/vector_neon_test.cc
+		vector/vector_neon_test.cc vector/vector_x86_test.cc
 VECTOR_UNIT_TESTS = $(BIN_DIR)/vector_unit_tests
 VECTOR_TEST_INCLUDES = -I"$(DEPTH)/as/include"
 GTEST_PREFIX ?= $(shell brew --prefix googletest 2>/dev/null)
@@ -386,6 +403,10 @@ vector-tests: $(VECTOR_UNIT_TESTS)
 
 run-vector-tests: vector-tests
 	$(VECTOR_UNIT_TESTS)
+
+$(VECTOR_TEST_OBJ_DIR)/vector_distance_sse.o: VECTOR_TEST_CXXFLAGS += -msse4.1
+$(VECTOR_TEST_OBJ_DIR)/vector_distance_avx2.o: VECTOR_TEST_CXXFLAGS += -mavx2
+$(VECTOR_TEST_OBJ_DIR)/vector_distance_avx512.o: VECTOR_TEST_CXXFLAGS += -mavx512f -mavx512bw
 
 $(VECTOR_TEST_OBJ_DIR)/%.o: vector/%.cc
 	@mkdir -p $(dir $@)
