@@ -38,7 +38,26 @@ Return `Owner-Local Top K` tuples `(head_id_key:int64, vid:int32, version:uint8,
 
 ### Distance implementation
 
-Vendor-adapted SPTAG `DistanceUtils` scalar code under `as/src/vector/` (`sptag_distance.h`, `vector_distance.cc`) with Microsoft MIT license preserved. **Shipped:** scalar only. **Follow-up:** optional SIMD in separate translation units with runtime CPUID dispatch on x86 (not required for Phase 4 client wiring).
+Vendor-adapted SPTAG `DistanceUtils` scalar code under `as/src/vector/` (`sptag_distance.h`, `vector_distance.cc`) with Microsoft MIT license preserved.
+
+**Shipped (run simd-vector-search, 2026-07):** SIMD kernels behind a runtime
+kernel table (`vector_kernel.{h,c}`), selected once per process from
+`AEROSPIKE_VECTOR_SIMD` (`auto|scalar|sse|avx2|avx512|neon`; invalid or
+unavailable values crash the first VECTOR_DISTANCE request - no fallback;
+the chosen ISA is logged once). Per-ISA translation units with per-object
+compile flags (`-march=nocona` baseline untouched):
+
+- `vector_distance_neon.cc` - aarch64 baseline (armv8 always has ASIMD).
+- `vector_distance_{sse,avx2,avx512}.cc` - x86-64, runtime-gated by
+  `vector_cpu.c` (CPUID leaf 1/7 plus XGETBV XCR0 ymm/zmm checks; SSE row
+  needs SSE4.1, AVX-512 row needs F+BW).
+
+`as_vector_distance_compute()` stays pinned to the scalar row as the parity
+oracle; the batch handler resolves the active kernel once per request, not
+per posting element. Parity: per-element math is identical; lane-parallel
+float accumulation reorders additions, bounded by
+`1e-5 relative + 4*base^2*dim*eps` (see `docs/benchmarks/simd-kernels.md`).
+Measured NEON speedup 3.4-4.7x (float), 5.5-9.1x (int8) over scalar.
 
 ### Namespace config
 

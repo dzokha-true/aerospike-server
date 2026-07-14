@@ -42,3 +42,12 @@ python3 -m unittest tests.conformance.vector_distance.test_codec
 `SPEC-3-OP-001` / `SPEC-3-OP-002` per-key statuses are covered at wire level
 in `vector_wire_test.cc`; full handler integration requires the planned smoke
 or Phase 4 SPTAG A/B test (`SPEC-4-INTEG-001`).
+
+
+## Live smoke (shipped)
+
+`bash tests/conformance/vector_distance/run-smoke.sh` builds/uses the
+`as-vector:check` image, runs `smoke.py` against scalar- and neon-kernel
+containers (fixture writes over the wire, reference scoring, per-key
+statuses, top-K truncation), and compares the two snapshots. Prints
+`SMOKE_OK` on success.

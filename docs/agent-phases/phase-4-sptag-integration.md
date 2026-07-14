@@ -1,5 +1,12 @@
 # Phase 4 — SPTAG integration and benchmark
 
+> **STATUS: COMPLETE (run simd-vector-search, 2026-07-14).** SPEC-4-INTEG-001
+> passed with per-query top-10 overlap 1.0000 (offload vs baseline, live
+> 3-node cluster); the SIMD follow-up from ADR 0004 shipped (kernel table,
+> NEON + x86 TUs); benchmarks in `docs/benchmarks/simd-kernels.md` and the
+> SPTAG repo's `docs/benchmarks/phase-4-results.md`. Run artifacts:
+> `docs/issues/simd-vector-search/`, `docs/runs/simd-vector-search/`.
+
 **Repos:**
 
 1. **SPTAG** (Microsoft) — smart client, graph, `ComputeDistance`
