@@ -1,7 +1,7 @@
 ---
 issue: 8
 title: "server: Linux asd image + vector-configured single/3-node compose"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 2
 ---
@@ -49,3 +49,5 @@ Duration hint: image build ~15-40m. Slow docker builds are not stalls.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T23:05Z [orchestrator] Implemented directly. Evidence: image builds from tree (arm64); SERVER_VECTOR_READY from docker/smoke-up.sh; compose single+cluster3 with SIMD env passthrough; rendered conf carries vector-dimension/value-type/metric. Note: scope ruling - build-blocking pre-existing defects fixed outside docker/ (cfg_tree_handlers braces, targetdirs, Makefile C++ flags, header decls), each recorded in the commit message.
+- 2026-07-14T23:05Z [orchestrator] VERDICT: PASS.

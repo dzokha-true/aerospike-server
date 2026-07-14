@@ -1,7 +1,7 @@
 ---
 issue: 10
 title: "server C1: live VECTOR_DISTANCE smoke, scalar vs NEON wire equivalence"
-state: OPEN
+state: CLOSED
 parent: 1
 blocked-by: 5, 8
 ---
@@ -49,3 +49,5 @@ Duration hint: ~10m plus one image build if not cached.
 <!-- architect-run: simd-vector-search -->
 
 ## Comments
+- 2026-07-14T23:05Z [orchestrator] Implemented directly. Evidence: SMOKE_OK - scalar and neon legs each pass all cases (reference scoring, missing-key=2, malformed=5, top-K truncation), snapshots compare OK (statuses identical, distances within 1e-5, same sets); server logged kernel isa scalar and neon; offline codec suite unbroken. smoke.py gained a bounded retry for the post-startup partition-unavailable window (result 11).
+- 2026-07-14T23:05Z [orchestrator] VERDICT: PASS.
