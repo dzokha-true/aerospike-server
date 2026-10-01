@@ -1,0 +1,63 @@
+name: Public vector CI
+
+on:
+  push:
+    branches: [factory/simd-vector-search, 'codex/public-research-*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-x86:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+          fetch-depth: 0 # server version is derived from reachable release tags
+          persist-credentials: false
+      - name: Fetch the public release ancestry needed by build/version
+        run: |
+          git fetch --no-recurse-submodules https://github.com/aerospike/aerospike-server.git refs/tags/8.1.1.2:refs/tags/8.1.1.2
+          test "$(git rev-parse '8.1.1.2^{commit}')" = 783cd07537a83bae5aaa851cc1a6f7244e8e3b73
+          git merge-base --is-ancestor 8.1.1.2 HEAD
+      - name: Record public source and runner
+        run: |
+          mkdir -p ci-artifacts
+          { git rev-parse HEAD; git submodule status; uname -a; lscpu; } > ci-artifacts/environment.txt
+      - name: Install public CE dependencies
+        run: bash .github/bin/install_deps.bash ubuntu24.04 2>&1 | tee ci-artifacts/dependencies.log
+      - name: Build the checked-out community server
+        run: make -j2 2>&1 | tee ci-artifacts/build.log
+      - name: Vector unit tests and available x86 ISA parity
+        env:
+          GTEST_OUTPUT: xml:vector-tests.xml
+        run: |
+          make -C as run-vector-tests 2>&1 | tee ci-artifacts/vector-tests.log
+          cp as/src/vector-tests.xml ci-artifacts/
+          # AVX2/AVX512 remain runtime-gated; SSE must actually execute here.
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          cases = ET.parse('ci-artifacts/vector-tests.xml').findall('.//testcase')
+          sse = [c for c in cases if c.get('classname') == 'VectorX86' and c.get('name') == 'ParitySse']
+          assert len(sse) == 1 and sse[0].get('status') == 'run' and sse[0].find('skipped') is None, 'SSE parity did not execute'
+          PY
+      - name: Wire and digest conformance
+        env:
+          OPENSSL_CONF: tests/conformance/vector_distance/openssl-test.cnf
+        run: python3 -m unittest -v tests.conformance.vector_distance.test_codec 2>&1 | tee ci-artifacts/wire-tests.log
+      - name: Documentation contract check
+        run: bash tests/docs/check_docs.sh 2>&1 | tee ci-artifacts/docs.log
+      - name: Retain build and test evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: public-vector-ci-${{ github.sha }}
+          path: ci-artifacts/
+          retention-days: 14
