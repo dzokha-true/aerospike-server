@@ -18,15 +18,9 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: step-security/action-cond@45aa5a709bd075f11c74285d8b0ca4d527e5fbcf # v1.2.4
-        id: reporter
-        with:
-          cond: ${{ github.event_name == 'pull_request' }}
-          if_true: "github-pr-review"
-          if_false: "github-check"
       - uses: reviewdog/action-shellcheck@4c07458293ac342d477251099501a718ae5ef86e # v1.32.0
         with:
-          reporter: ${{ steps.reporter.outputs.value }}
+          reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
           level: warning
           filter_mode: file
           fail_level: any
@@ -41,15 +35,9 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: step-security/action-cond@45aa5a709bd075f11c74285d8b0ca4d527e5fbcf # v1.2.4
-        id: reporter
+      - uses: reviewdog/action-actionlint@fede3bdfdd00a5a8d9720639c6e57d3b8283b5aa # v1.78.0
         with:
-          cond: ${{ github.event_name == 'pull_request' }}
-          if_true: "github-pr-review"
-          if_false: "github-check"
-      - uses: step-security/action-actionlint@c3aa382d371c6b05513ae5907d4f77713e21813c # v1.72.0
-        with:
-          reporter: ${{ steps.reporter.outputs.value }}
+          reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
           level: warning
           filter_mode: file
           fail_level: any
@@ -64,20 +52,14 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: step-security/action-cond@45aa5a709bd075f11c74285d8b0ca4d527e5fbcf # v1.2.4
-        id: reporter
-        with:
-          cond: ${{ github.event_name == 'pull_request' }}
-          if_true: "github-pr-review"
-          if_false: "github-check"
-      - uses: step-security/action-shfmt@efd9eed3c25dea0717f2adf3c92ac5d38b162fa6 # v1.0.5
+      - uses: reviewdog/action-shfmt@1046a64d736ebcaed8f3bc083b652f7a79fd91ee # v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           shfmt_flags: ''
           level: warning
           filter_mode: added
           fail_level: any
-          reviewdog_flags: -reporter=${{ steps.reporter.outputs.value }}
+          reviewdog_flags: -reporter=${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
 
   # hadolint:
   #   name: runner / hadolint
