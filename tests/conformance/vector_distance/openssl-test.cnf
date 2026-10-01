@@ -1,0 +1,12 @@
+# Test-process-only: RIPEMD-160 is part of Aerospike's integer-key digest.
+# Ubuntu/OpenSSL 3 may expose it only through the legacy provider.
+openssl_conf = openssl_init
+[openssl_init]
+providers = provider_sect
+[provider_sect]
+default = default_sect
+legacy = legacy_sect
+[default_sect]
+activate = 1
+[legacy_sect]
+activate = 1
