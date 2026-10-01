@@ -35,8 +35,21 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      # ShellCheck 0.11.0 crashes in checkCmd on an inherited EE workflow.
+      # Keep embedded shell analysis enabled with the last compatible release.
+      - name: Install compatible ShellCheck for actionlint
+        shell: bash
+        run: |
+          curl --fail --location --silent --show-error \
+            https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.linux.x86_64.tar.xz \
+            -o "$RUNNER_TEMP/shellcheck.tar.xz"
+          echo "6c881ab0698e4e6ea235245f22832860544f17ba386442fe7e9d629f8cbedf87  $RUNNER_TEMP/shellcheck.tar.xz" | sha256sum --check
+          tar -xJf "$RUNNER_TEMP/shellcheck.tar.xz" -C "$RUNNER_TEMP"
+          mkdir -p .ci-tools
+          install -m 755 "$RUNNER_TEMP/shellcheck-v0.10.0/shellcheck" .ci-tools/shellcheck
       - uses: reviewdog/action-actionlint@fede3bdfdd00a5a8d9720639c6e57d3b8283b5aa # v1.78.0
         with:
+          actionlint_flags: -shellcheck=./.ci-tools/shellcheck
           reporter: ${{ github.event_name == 'pull_request' && 'github-pr-review' || 'github-check' }}
           level: warning
           filter_mode: file
